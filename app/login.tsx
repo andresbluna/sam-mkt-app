@@ -1,4 +1,4 @@
-import LoginScreen from '@/screens/LoginScreen';
+import LoginScreenNew from '@/screens/LoginScreenNew';
 
-export default LoginScreen;
+export default LoginScreenNew;
 
