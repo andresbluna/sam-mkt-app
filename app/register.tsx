@@ -1,4 +1,4 @@
-import RegisterScreen from '@/screens/RegisterScreen';
+import RegisterScreenNew from '@/screens/RegisterScreenNew';
 
-export default RegisterScreen;
+export default RegisterScreenNew;
 

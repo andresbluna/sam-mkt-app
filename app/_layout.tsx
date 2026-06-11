@@ -1,17 +1,19 @@
 import { useEffect } from 'react';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as RNThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { ThemeProvider, useTheme } from '@/theme/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { UserProvider } from '@/contexts/UserContext';
 import { PostsProvider } from '@/contexts/PostsContext';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import LoginScreenNew from '@/screens/LoginScreenNew';
+import RegisterScreenNew from '@/screens/RegisterScreenNew';
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const { theme, isDark } = useTheme();
   const { isSignedIn, isLoading } = useAuth();
 
   if (isLoading) {
@@ -19,41 +21,46 @@ function RootLayoutNav() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <RNThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         {isSignedIn ? (
           <>
             <Stack.Screen name="(tabs)" options={{ animationEnabled: false }} />
             <Stack.Screen name="post/[id]" options={{ presentation: 'card' }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
           </>
         ) : (
           <>
             <Stack.Screen
               name="login"
+              component={LoginScreenNew}
               options={{ animationEnabled: false }}
             />
             <Stack.Screen
               name="register"
+              component={RegisterScreenNew}
               options={{ animationEnabled: false }}
             />
           </>
         )}
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+    </RNThemeProvider>
+  );
+}
+
+function RootLayout() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <UserProvider>
+          <PostsProvider>
+            <RootLayoutNav />
+          </PostsProvider>
+        </UserProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
 
-export default function RootLayout() {
-  return (
-    <AuthProvider>
-      <UserProvider>
-        <PostsProvider>
-          <RootLayoutNav />
-        </PostsProvider>
-      </UserProvider>
-    </AuthProvider>
-  );
-}
+export default RootLayout;
 

@@ -1,4 +1,4 @@
-import ProfileScreen from '@/screens/ProfileScreen';
+import ProfileScreenNew from '@/screens/ProfileScreenNew';
 
-export default ProfileScreen;
+export default ProfileScreenNew;
 
