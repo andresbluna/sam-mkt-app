@@ -11,7 +11,7 @@ import {
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
-import { SamLogo } from '@/components/common/SamLogo';
+import SamLogo from '@/components/common/SamLogo';
 import { Input } from '@/components/common/Input';
 import { Button } from '@/components/common/Button';
 import { validateEmail, validatePassword, validateName } from '@/utils/validation';
@@ -81,20 +81,20 @@ export default function RegisterScreenNew() {
         showsVerticalScrollIndicator={false}>
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <SamLogo size="large" showText />
+          <SamLogo size="xl" showText={false} />
         </View>
 
         {/* Título */}
         <View style={styles.titleContainer}>
-          <Text style={[theme.typography.h2, { color: theme.colors.text, fontSize: 26 }]}>
+          <Text style={[theme.typography.h1, { color: theme.colors.text, textAlign: 'center', fontSize: 32 }]}>
             Crear cuenta
           </Text>
           <Text
             style={[
               theme.typography.bodyLg,
-              { color: theme.colors.textSecondary, marginTop: theme.spacing.xs },
+              { color: theme.colors.textSecondary, marginTop: theme.spacing.xs, textAlign: 'center' },
             ]}>
-            Únete y comienza a crear
+            Únete y comienza a potenciar tu marca
           </Text>
         </View>
 
@@ -210,13 +210,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingHorizontal: 28,
+    paddingVertical: 60,
+    justifyContent: 'center',
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 32,
+    marginBottom: 10,
   },
   titleContainer: {
     marginBottom: 32,

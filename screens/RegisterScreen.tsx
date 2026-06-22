@@ -16,7 +16,7 @@ import { validateEmail, validatePassword, validateName } from '@/utils/validatio
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
-import { SamLogo } from '@/components/common/SamLogo';
+import SamLogo from '@/components/common/SamLogo';
 
 interface RegisterErrors {
   name?: string;

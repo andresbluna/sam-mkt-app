@@ -86,7 +86,6 @@ export const Button: React.FC<ButtonProps> = ({
           }),
           ...getPadding(),
           ...(fullWidth && { width: '100%' }),
-          ...((variant === 'primary' || variant === 'secondary') && !disabled && theme.shadows.md),
         },
         style,
       ]}>

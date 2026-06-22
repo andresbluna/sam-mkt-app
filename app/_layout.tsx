@@ -9,20 +9,19 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { UserProvider } from '@/contexts/UserContext';
 import { PostsProvider } from '@/contexts/PostsContext';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import LoginScreenNew from '@/screens/LoginScreenNew';
-import RegisterScreenNew from '@/screens/RegisterScreenNew';
 
 function RootLayoutNav() {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { isSignedIn, isLoading } = useAuth();
 
   if (isLoading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner fullScreen={true} />;
   }
 
   return (
     <RNThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
         {isSignedIn ? (
           <>
             <Stack.Screen name="(tabs)" options={{ animationEnabled: false }} />
@@ -30,16 +29,8 @@ function RootLayoutNav() {
           </>
         ) : (
           <>
-            <Stack.Screen
-              name="login"
-              component={LoginScreenNew}
-              options={{ animationEnabled: false }}
-            />
-            <Stack.Screen
-              name="register"
-              component={RegisterScreenNew}
-              options={{ animationEnabled: false }}
-            />
+            <Stack.Screen name="login" options={{ animationEnabled: false }} />
+            <Stack.Screen name="register" options={{ animationEnabled: false }} />
           </>
         )}
       </Stack>

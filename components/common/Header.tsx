@@ -11,7 +11,7 @@ import {
 import { useTheme } from '@/theme/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 
-import { SamLogo } from './SamLogo';
+import SamLogo from './SamLogo';
 
 interface HeaderProps {
   title?: string;

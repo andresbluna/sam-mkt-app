@@ -11,7 +11,7 @@ import {
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
-import { SamLogo } from '@/components/common/SamLogo';
+import SamLogo from '@/components/common/SamLogo';
 import { Input } from '@/components/common/Input';
 import { Button } from '@/components/common/Button';
 import { validateEmail } from '@/utils/validation';
@@ -62,20 +62,20 @@ export default function LoginScreenNew() {
         showsVerticalScrollIndicator={false}>
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <SamLogo size="large" showText />
+          <SamLogo size="xl" showText={false} />
         </View>
 
         {/* Título */}
         <View style={styles.titleContainer}>
-          <Text style={[theme.typography.h2, { color: theme.colors.text, fontSize: 28 }]}>
-            Bienvenido
+          <Text style={[theme.typography.h1, { color: theme.colors.text, textAlign: 'center', fontSize: 32 }]}>
+            Hola de nuevo
           </Text>
           <Text
             style={[
               theme.typography.bodyLg,
-              { color: theme.colors.textSecondary, marginTop: theme.spacing.xs },
+              { color: theme.colors.textSecondary, marginTop: theme.spacing.xs, textAlign: 'center' },
             ]}>
-            Inicia sesión para continuar
+            Inicia sesión para comenzar a crear
           </Text>
         </View>
 
@@ -169,17 +169,16 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-    justifyContent: 'space-between',
+    paddingHorizontal: 28,
+    paddingVertical: 60,
+    justifyContent: 'center',
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 40,
+    marginBottom: 10,
   },
   titleContainer: {
-    marginBottom: 40,
+    marginBottom: 32,
     alignItems: 'center',
   },
   errorBanner: {
