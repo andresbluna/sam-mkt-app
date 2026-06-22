@@ -13,19 +13,11 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PostCard from '@/components/ui/PostCard';
-
-const COLORS = {
-  primary: '#2563EB',
-  secondary: '#06B6D4',
-  background: '#F8FAFC',
-  white: '#FFFFFF',
-  text: '#1F2937',
-  textLight: '#6B7280',
-  border: '#E5E7EB',
-  success: '#10B981',
-};
+import { useTheme } from '@/theme/ThemeContext';
+import { SamLogo } from '@/components/common/SamLogo';
 
 export default function HomeScreen() {
+  const { theme } = useTheme();
   const { user } = useAuth();
   const { posts, isLoading, fetchPosts } = usePosts();
   const router = useRouter();
@@ -43,91 +35,92 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView 
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
-        {/* Header */}
+        {/* Header Personalizado */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Hola, {user?.name}! 👋</Text>
-            <Text style={styles.subtitle}>Bienvenido a tu panel</Text>
+            <Text style={[styles.greeting, { color: theme.colors.text }]}>
+              Hola, {user?.name.split(' ')[0]}! 👋
+            </Text>
+            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+              Bienvenido de nuevo a Sam.
+            </Text>
           </View>
           <TouchableOpacity
             onPress={() => router.push('/(tabs)/profile')}
-            style={styles.profileButton}>
-            <Ionicons name="person-circle" size={44} color={COLORS.primary} />
+            activeOpacity={0.7}>
+            <View style={[styles.profileButton, { backgroundColor: theme.colors.surfaceVariant }]}>
+              <SamLogo size="small" showText={false} />
+            </View>
           </TouchableOpacity>
         </View>
 
-        {/* Stats */}
+        {/* Stats con diseño moderno */}
         <View style={styles.statsContainer}>
-          <View style={[styles.statCard, styles.statCardPrimary]}>
-            <Ionicons name="document" size={32} color={COLORS.white} />
+          <View style={[styles.statCard, { backgroundColor: theme.colors.primary, ...theme.shadows.md }]}>
+            <View style={styles.statIconBadge}>
+              <Ionicons name="documents-outline" size={24} color={theme.colors.primary} />
+            </View>
             <Text style={styles.statValue}>{posts.length}</Text>
-            <Text style={styles.statLabel}>Publicaciones</Text>
+            <Text style={styles.statLabel}>Total</Text>
           </View>
 
-          <View style={[styles.statCard, styles.statCardSecondary]}>
-            <Ionicons name="checkmark-circle" size={32} color={COLORS.white} />
+          <View style={[styles.statCard, { backgroundColor: theme.colors.secondary, ...theme.shadows.md }]}>
+            <View style={styles.statIconBadge}>
+              <Ionicons name="checkmark-done-outline" size={24} color={theme.colors.secondary} />
+            </View>
             <Text style={styles.statValue}>{publishedCount}</Text>
             <Text style={styles.statLabel}>Publicadas</Text>
           </View>
 
-          <View style={[styles.statCard, styles.statCardTertiary]}>
-            <Ionicons name="create" size={32} color={COLORS.white} />
+          <View style={[styles.statCard, { backgroundColor: '#06B6D4', ...theme.shadows.md }]}>
+            <View style={styles.statIconBadge}>
+              <Ionicons name="create-outline" size={24} color="#06B6D4" />
+            </View>
             <Text style={styles.statValue}>{draftCount}</Text>
             <Text style={styles.statLabel}>Borradores</Text>
           </View>
         </View>
 
-        {/* Quick Actions */}
+        {/* Acciones Rápidas */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Acciones Rápidas</Text>
           <View style={styles.actionsGrid}>
             <TouchableOpacity
-              style={styles.actionCard}
-              onPress={() => router.push('/(tabs)/create')}>
-              <Ionicons name="add-circle" size={32} color={COLORS.primary} />
-              <Text style={styles.actionTitle}>Crear Post</Text>
-              <Text style={styles.actionDesc}>Nuevo contenido</Text>
+              style={[styles.actionCard, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}
+              onPress={() => router.push('/(tabs)/create')}
+              activeOpacity={0.7}>
+              <View style={[styles.actionIcon, { backgroundColor: theme.colors.primaryLight + '40' }]}>
+                <Ionicons name="add" size={28} color={theme.colors.primary} />
+              </View>
+              <Text style={[styles.actionTitle, { color: theme.colors.text }]}>Crear Post</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.actionCard}
-              onPress={() => router.push('/(tabs)/posts')}>
-              <Ionicons name="grid" size={32} color={COLORS.secondary} />
-              <Text style={styles.actionTitle}>Mis Posts</Text>
-              <Text style={styles.actionDesc}>Ver todos</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionCard}
-              onPress={() => router.push('/(tabs)/history')}>
-              <Ionicons name="time" size={32} color="#F59E0B" />
-              <Text style={styles.actionTitle}>Historial</Text>
-              <Text style={styles.actionDesc}>Actividad</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionCard}
-              onPress={() => router.push('/(tabs)/profile')}>
-              <Ionicons name="settings" size={32} color="#8B5CF6" />
-              <Text style={styles.actionTitle}>Perfil</Text>
-              <Text style={styles.actionDesc}>Configuración</Text>
+              style={[styles.actionCard, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}
+              onPress={() => router.push('/(tabs)/posts')}
+              activeOpacity={0.7}>
+              <View style={[styles.actionIcon, { backgroundColor: theme.colors.secondaryLight + '40' }]}>
+                <Ionicons name="grid-outline" size={26} color={theme.colors.secondary} />
+              </View>
+              <Text style={[styles.actionTitle, { color: theme.colors.text }]}>Mis Posts</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Recent Posts */}
+        {/* Contenido Reciente */}
         {recentPosts.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Publicaciones Recientes</Text>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recientes</Text>
               <TouchableOpacity onPress={() => router.push('/(tabs)/posts')}>
-                <Text style={styles.seeAll}>Ver todo</Text>
+                <Text style={[styles.seeAll, { color: theme.colors.primary }]}>Ver todo</Text>
               </TouchableOpacity>
             </View>
+
             {recentPosts.map((post) => (
               <PostCard
                 key={post.id}
@@ -138,19 +131,13 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Empty State */}
         {posts.length === 0 && (
-          <View style={styles.emptyState}>
-            <Ionicons name="document-outline" size={64} color={COLORS.textLight} />
-            <Text style={styles.emptyStateTitle}>Sin publicaciones</Text>
-            <Text style={styles.emptyStateDesc}>
-              Crea tu primer post para comenzar
+          <View style={[styles.emptyState, { backgroundColor: theme.colors.surfaceVariant }]}>
+            <Ionicons name="rocket-outline" size={48} color={theme.colors.textTertiary} />
+            <Text style={[styles.emptyStateTitle, { color: theme.colors.text }]}>Tu feed está vacío</Text>
+            <Text style={[styles.emptyStateDesc, { color: theme.colors.textSecondary }]}>
+              Comienza creando contenido increíble con la ayuda de Sam.
             </Text>
-            <TouchableOpacity
-              style={styles.emptyStateButton}
-              onPress={() => router.push('/(tabs)/create')}>
-              <Text style={styles.emptyStateButtonText}>Crear Publicación</Text>
-            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -161,139 +148,126 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   greeting: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '800',
-    color: COLORS.text,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 14,
-    color: COLORS.textLight,
+    fontSize: 16,
+    fontWeight: '500',
     marginTop: 4,
   },
   profileButton: {
-    padding: 8,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
   },
   statsContainer: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 32,
   },
   statCard: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  statCardPrimary: {
-    backgroundColor: COLORS.primary,
-  },
-  statCardSecondary: {
-    backgroundColor: COLORS.secondary,
-  },
-  statCardTertiary: {
-    backgroundColor: '#06B6D4',
+  statIconBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '800',
-    color: COLORS.white,
-    marginTop: 8,
+    color: '#FFFFFF',
   },
   statLabel: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 4,
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.85)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 2,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 12,
+    letterSpacing: -0.3,
   },
   seeAll: {
-    color: COLORS.primary,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   actionsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+    gap: 16,
   },
   actionCard: {
     flex: 1,
-    minWidth: '48%',
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 20,
+    padding: 20,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.border,
+  },
+  actionIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   actionTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: COLORS.text,
-    marginTop: 8,
-  },
-  actionDesc: {
-    fontSize: 12,
-    color: COLORS.textLight,
-    marginTop: 2,
   },
   emptyState: {
+    padding: 40,
+    borderRadius: 24,
     alignItems: 'center',
-    paddingVertical: 48,
+    marginTop: 8,
   },
   emptyStateTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
     marginTop: 16,
   },
   emptyStateDesc: {
     fontSize: 14,
-    color: COLORS.textLight,
-    marginTop: 8,
     textAlign: 'center',
-  },
-  emptyStateButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 16,
-  },
-  emptyStateButtonText: {
-    color: COLORS.white,
-    fontWeight: '600',
+    marginTop: 8,
+    lineHeight: 20,
   },
 });
 

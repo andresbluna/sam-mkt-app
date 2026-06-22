@@ -6,28 +6,20 @@ import {
   ActivityIndicator,
   ViewStyle,
   TextStyle,
+  View,
 } from 'react-native';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface CustomButtonProps {
   title: string;
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: 'primary' | 'secondary' | 'danger' | 'outline' | 'ghost';
   size?: 'small' | 'medium' | 'large';
   style?: ViewStyle;
   textStyle?: TextStyle;
 }
-
-const COLORS = {
-  primary: '#2563EB',
-  secondary: '#06B6D4',
-  danger: '#EF4444',
-  background: '#F8FAFC',
-  white: '#FFFFFF',
-  text: '#1F2937',
-  border: '#E5E7EB',
-};
 
 const CustomButton: React.FC<CustomButtonProps> = ({
   title,
@@ -39,43 +31,88 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   style,
   textStyle,
 }) => {
-  const getBgColor = () => {
-    if (disabled) return COLORS.border;
+  const { theme } = useTheme();
+
+  const getVariantStyles = () => {
+    if (disabled) {
+      return {
+        container: { backgroundColor: theme.colors.disabled, borderWidth: 0 },
+        text: { color: theme.colors.textTertiary },
+      };
+    }
+
     switch (variant) {
       case 'secondary':
-        return COLORS.secondary;
+        return {
+          container: { backgroundColor: theme.colors.secondary, borderWidth: 0 },
+          text: { color: '#FFFFFF' },
+        };
       case 'danger':
-        return COLORS.danger;
+        return {
+          container: { backgroundColor: theme.colors.error, borderWidth: 0 },
+          text: { color: '#FFFFFF' },
+        };
+      case 'outline':
+        return {
+          container: {
+            backgroundColor: 'transparent',
+            borderWidth: 1.5,
+            borderColor: theme.colors.primary,
+          },
+          text: { color: theme.colors.primary },
+        };
+      case 'ghost':
+        return {
+          container: { backgroundColor: 'transparent', borderWidth: 0 },
+          text: { color: theme.colors.primary },
+        };
       default:
-        return COLORS.primary;
+        return {
+          container: { backgroundColor: theme.colors.primary, borderWidth: 0 },
+          text: { color: '#FFFFFF' },
+        };
     }
   };
 
   const getPadding = () => {
     switch (size) {
       case 'small':
-        return { paddingVertical: 8, paddingHorizontal: 12 };
+        return { paddingVertical: 8, paddingHorizontal: 16, minHeight: 36 };
       case 'large':
-        return { paddingVertical: 16, paddingHorizontal: 24 };
+        return { paddingVertical: 16, paddingHorizontal: 32, minHeight: 56 };
       default:
-        return { paddingVertical: 12, paddingHorizontal: 20 };
+        return { paddingVertical: 12, paddingHorizontal: 24, minHeight: 48 };
     }
   };
+
+  const variantStyles = getVariantStyles();
+  const paddingStyles = getPadding();
 
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled || loading}
+      activeOpacity={0.7}
       style={[
         styles.button,
-        { backgroundColor: getBgColor() },
-        getPadding(),
+        variantStyles.container,
+        paddingStyles,
+        variant === 'primary' && !disabled && theme.shadows.sm,
         style,
       ]}>
       {loading ? (
-        <ActivityIndicator color={COLORS.white} size="small" />
+        <ActivityIndicator color={variantStyles.text.color} size="small" />
       ) : (
-        <Text style={[styles.buttonText, textStyle]}>{title}</Text>
+        <Text
+          style={[
+            styles.buttonText,
+            variantStyles.text,
+            size === 'large' && { fontSize: 18 },
+            size === 'small' && { fontSize: 14 },
+            textStyle,
+          ]}>
+          {title}
+        </Text>
       )}
     </TouchableOpacity>
   );
@@ -83,15 +120,15 @@ const CustomButton: React.FC<CustomButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 44,
+    flexDirection: 'row',
   },
   buttonText: {
-    color: COLORS.white,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
 });
 

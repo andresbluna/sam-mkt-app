@@ -1,18 +1,18 @@
 export const darkTheme = {
   colors: {
     // Primario (Azul - más brillante en tema oscuro)
-    primary: '#38BDF8',
-    primaryLight: '#0C4A6E',
-    primaryVariant: '#7DD3FC',
+    primary: '#818CF8',
+    primaryLight: '#312E81',
+    primaryVariant: '#A5B4FC',
     
-    // Secundario (Verde - más brillante en tema oscuro)
-    secondary: '#34D399',
-    secondaryLight: '#064E3B',
-    secondaryVariant: '#6EE7B7',
+    // Secundario (Violeta/Rosa)
+    secondary: '#F472B6',
+    secondaryLight: '#831843',
+    secondaryVariant: '#F9A8D4',
     
     // Gradiente
-    gradientStart: '#38BDF8',
-    gradientEnd: '#34D399',
+    gradientStart: '#818CF8',
+    gradientEnd: '#F472B6',
     
     // Texto
     text: '#F9FAFB',

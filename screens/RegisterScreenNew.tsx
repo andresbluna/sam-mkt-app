@@ -81,20 +81,20 @@ export default function RegisterScreenNew() {
         showsVerticalScrollIndicator={false}>
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <SamLogo size="medium" showText={true} />
+          <SamLogo size="large" showText />
         </View>
 
         {/* Título */}
         <View style={styles.titleContainer}>
-          <Text style={[theme.typography.h2, { color: theme.colors.text }]}>
+          <Text style={[theme.typography.h2, { color: theme.colors.text, fontSize: 26 }]}>
             Crear cuenta
           </Text>
           <Text
             style={[
-              theme.typography.body,
-              { color: theme.colors.textSecondary, marginTop: theme.spacing.sm },
+              theme.typography.bodyLg,
+              { color: theme.colors.textSecondary, marginTop: theme.spacing.xs },
             ]}>
-            Únete a Sam y comienza a crear
+            Únete y comienza a crear
           </Text>
         </View>
 
@@ -215,10 +215,12 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
+    marginTop: 20,
     marginBottom: 32,
   },
   titleContainer: {
     marginBottom: 32,
+    alignItems: 'center',
   },
   errorBanner: {
     borderRadius: 8,

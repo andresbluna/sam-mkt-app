@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface CustomInputProps extends TextInputProps {
   label?: string;
@@ -19,17 +20,6 @@ interface CustomInputProps extends TextInputProps {
   helper?: string;
 }
 
-const COLORS = {
-  primary: '#2563EB',
-  secondary: '#06B6D4',
-  danger: '#EF4444',
-  background: '#F8FAFC',
-  white: '#FFFFFF',
-  text: '#1F2937',
-  textLight: '#6B7280',
-  border: '#E5E7EB',
-};
-
 const CustomInput: React.FC<CustomInputProps> = ({
   label,
   error,
@@ -39,24 +29,44 @@ const CustomInput: React.FC<CustomInputProps> = ({
   helper,
   ...inputProps
 }) => {
+  const { theme } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <View style={containerStyle}>
-      {label && <Text style={styles.label}>{label}</Text>}
+    <View style={[styles.mainContainer, containerStyle]}>
+      {label && (
+        <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+          {label}
+        </Text>
+      )}
 
       <View
         style={[
           styles.inputContainer,
-          isFocused && styles.inputContainerFocused,
-          error && styles.inputContainerError,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.border,
+            borderRadius: 12,
+          },
+          isFocused && {
+            borderColor: theme.colors.primary,
+            backgroundColor: theme.colors.background,
+            ...theme.shadows.sm,
+          },
+          error && { borderColor: theme.colors.error },
         ]}>
         {icon && (
           <Ionicons
             name={icon as any}
             size={20}
-            color={error ? COLORS.danger : COLORS.primary}
+            color={
+              error
+                ? theme.colors.error
+                : isFocused
+                ? theme.colors.primary
+                : theme.colors.textTertiary
+            }
             style={styles.icon}
           />
         )}
@@ -64,76 +74,86 @@ const CustomInput: React.FC<CustomInputProps> = ({
         <TextInput
           {...inputProps}
           secureTextEntry={isPassword && !showPassword}
-          style={[styles.input, icon && styles.inputWithIcon]}
-          placeholderTextColor={COLORS.textLight}
+          style={[
+            styles.input,
+            { color: theme.colors.text },
+            icon && styles.inputWithIcon,
+          ]}
+          placeholderTextColor={theme.colors.textTertiary}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
 
         {isPassword && (
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <TouchableOpacity
+            onPress={() => setShowPassword(!showPassword)}
+            activeOpacity={0.7}>
             <Ionicons
-              name={showPassword ? 'eye' : 'eye-off'}
+              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
               size={20}
-              color={COLORS.textLight}
-              style={styles.icon}
+              color={theme.colors.textTertiary}
+              style={styles.iconRight}
             />
           </TouchableOpacity>
         )}
       </View>
 
-      {error && <Text style={styles.error}>{error}</Text>}
-      {helper && !error && <Text style={styles.helper}>{helper}</Text>}
+      {error && (
+        <Text style={[styles.error, { color: theme.colors.error }]}>
+          {error}
+        </Text>
+      )}
+      {helper && !error && (
+        <Text style={[styles.helper, { color: theme.colors.textTertiary }]}>
+          {helper}
+        </Text>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    marginBottom: 16,
+  },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 8,
+    marginBottom: 6,
+    marginLeft: 4,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: 12,
-    height: 48,
-  },
-  inputContainerFocused: {
-    borderColor: COLORS.primary,
-    borderWidth: 2,
-  },
-  inputContainerError: {
-    borderColor: COLORS.danger,
-    borderWidth: 2,
+    borderWidth: 1.5,
+    paddingHorizontal: 16,
+    height: 52,
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: COLORS.text,
     padding: 0,
+    fontWeight: '500',
   },
   inputWithIcon: {
-    marginLeft: 8,
+    marginLeft: 10,
   },
   icon: {
-    marginRight: 8,
+    marginRight: 0,
+  },
+  iconRight: {
+    marginLeft: 10,
   },
   error: {
     fontSize: 12,
-    color: COLORS.danger,
-    marginTop: 4,
+    fontWeight: '500',
+    marginTop: 6,
+    marginLeft: 4,
   },
   helper: {
     fontSize: 12,
-    color: COLORS.textLight,
-    marginTop: 4,
+    marginTop: 6,
+    marginLeft: 4,
   },
 });
 

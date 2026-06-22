@@ -12,25 +12,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import CustomInput from '@/components/ui/CustomInput';
 import CustomButton from '@/components/ui/CustomButton';
 import ErrorMessage from '@/components/ui/ErrorMessage';
-import { validateEmail, validatePassword } from '@/utils/validation';
+import { validateEmail } from '@/utils/validation';
 import { useRouter } from 'expo-router';
+import { useTheme } from '@/theme/ThemeContext';
+import { SamLogo } from '@/components/common/SamLogo';
 
 interface LoginErrors {
   email?: string;
   password?: string;
 }
 
-const COLORS = {
-  primary: '#2563EB',
-  secondary: '#06B6D4',
-  background: '#F8FAFC',
-  white: '#FFFFFF',
-  text: '#1F2937',
-  textLight: '#6B7280',
-  border: '#E5E7EB',
-};
-
 export default function LoginScreen() {
+  const { theme } = useTheme();
   const { login, isLoading, error, setError } = useAuth();
   const router = useRouter();
 
@@ -69,21 +62,26 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}>
-      <ScrollView 
+      style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
-        {/* Header */}
+        {/* Header con Logo Personalizado */}
         <View style={styles.header}>
-          <Text style={styles.logo}>S.A.M</Text>
-          <Text style={styles.tagline}>Sistema de Asistencia de Marketing</Text>
+          <SamLogo size="large" showText={false} />
+          <Text style={[styles.title, { color: theme.colors.text }]}>
+            Sam.
+          </Text>
+          <Text style={[styles.tagline, { color: theme.colors.textSecondary }]}>
+            Sistema de Asistencia de Marketing
+          </Text>
         </View>
 
-        {/* Form */}
+        {/* Formulario */}
         <View style={styles.form}>
           {error && (
-            <ErrorMessage 
-              message={error} 
+            <ErrorMessage
+              message={error}
               onClose={() => setError(null)}
               containerStyle={styles.errorContainer}
             />
@@ -100,28 +98,35 @@ export default function LoginScreen() {
             }}
             keyboardType="email-address"
             autoCapitalize="none"
-            icon="mail"
+            icon="mail-outline"
             error={errors.email}
-            containerStyle={styles.inputContainer}
           />
 
           <CustomInput
             label="Contraseña"
-            placeholder="••••••"
+            placeholder="••••••••"
             value={password}
             onChangeText={(text) => {
               setPassword(text);
-              if (errors.password) setErrors({ ...errors, password: undefined });
+              if (errors.password)
+                setErrors({ ...errors, password: undefined });
               if (error) setError(null);
             }}
             isPassword
-            icon="lock-closed"
+            icon="lock-closed-outline"
             error={errors.password}
-            containerStyle={styles.inputContainer}
           />
 
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>¿Olvidó su contraseña?</Text>
+          <TouchableOpacity
+            style={styles.forgotPassword}
+            activeOpacity={0.7}>
+            <Text
+              style={[
+                styles.forgotPasswordText,
+                { color: theme.colors.primary },
+              ]}>
+              ¿Olvidó su contraseña?
+            </Text>
           </TouchableOpacity>
 
           <CustomButton
@@ -129,15 +134,23 @@ export default function LoginScreen() {
             onPress={handleLogin}
             loading={isLoading}
             disabled={isLoading}
+            size="large"
             style={styles.loginButton}
           />
         </View>
 
-        {/* Sign Up Link */}
+        {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>¿No tienes cuenta? </Text>
-          <TouchableOpacity onPress={() => router.push('/register')}>
-            <Text style={styles.signUpLink}>Regístrate aquí</Text>
+          <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
+            ¿No tienes cuenta?{' '}
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.push('/register')}
+            activeOpacity={0.7}>
+            <Text
+              style={[styles.signUpLink, { color: theme.colors.primary }]}>
+              Regístrate aquí
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -148,62 +161,59 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 40,
+    paddingHorizontal: 24,
+    paddingVertical: 60,
+    justifyContent: 'center',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 48,
   },
-  logo: {
-    fontSize: 40,
+  title: {
+    fontSize: 32,
     fontWeight: '800',
-    color: COLORS.primary,
-    marginBottom: 8,
+    marginTop: 16,
+    letterSpacing: -0.5,
   },
   tagline: {
-    fontSize: 14,
-    color: COLORS.textLight,
+    fontSize: 16,
     fontWeight: '500',
+    marginTop: 8,
+    textAlign: 'center',
+    opacity: 0.8,
   },
   form: {
-    marginBottom: 40,
+    width: '100%',
   },
   errorContainer: {
-    marginBottom: 16,
-  },
-  inputContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   forgotPassword: {
     alignItems: 'flex-end',
-    marginBottom: 24,
+    marginBottom: 32,
+    marginTop: -8,
   },
   forgotPasswordText: {
-    color: COLORS.primary,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   loginButton: {
-    marginTop: 8,
+    borderRadius: 16,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 40,
   },
   footerText: {
-    color: COLORS.textLight,
-    fontSize: 14,
+    fontSize: 15,
   },
   signUpLink: {
-    color: COLORS.primary,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
   },
 });
