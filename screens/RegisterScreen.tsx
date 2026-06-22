@@ -14,6 +14,9 @@ import CustomButton from '@/components/ui/CustomButton';
 import ErrorMessage from '@/components/ui/ErrorMessage';
 import { validateEmail, validatePassword, validateName } from '@/utils/validation';
 import { useRouter } from 'expo-router';
+import { useTheme } from '@/theme/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
+import { SamLogo } from '@/components/common/SamLogo';
 
 interface RegisterErrors {
   name?: string;
@@ -22,17 +25,8 @@ interface RegisterErrors {
   confirmPassword?: string;
 }
 
-const COLORS = {
-  primary: '#2563EB',
-  secondary: '#06B6D4',
-  background: '#F8FAFC',
-  white: '#FFFFFF',
-  text: '#1F2937',
-  textLight: '#6B7280',
-  border: '#E5E7EB',
-};
-
 export default function RegisterScreen() {
+  const { theme } = useTheme();
   const { register, isLoading, error, setError } = useAuth();
   const router = useRouter();
 
@@ -90,25 +84,34 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}>
-      <ScrollView 
+      style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
-        {/* Header */}
+        {/* Header con botón atrás y logo */}
         <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>← Atrás</Text>
+          <TouchableOpacity
+            style={[styles.backButton, { backgroundColor: theme.colors.surfaceVariant }]}
+            onPress={() => router.back()}
+            activeOpacity={0.7}>
+            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>Crear Cuenta</Text>
+          <View style={styles.logoHeader}>
+            <SamLogo size="small" showText={false} />
+            <Text style={[styles.title, { color: theme.colors.text }]}>
+              Crear Cuenta
+            </Text>
+          </View>
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+            Únete a la plataforma de marketing inteligente
+          </Text>
         </View>
 
-        {/* Form */}
+        {/* Formulario */}
         <View style={styles.form}>
           {error && (
-            <ErrorMessage 
-              message={error} 
+            <ErrorMessage
+              message={error}
               onClose={() => setError(null)}
               containerStyle={styles.errorContainer}
             />
@@ -123,9 +126,8 @@ export default function RegisterScreen() {
               if (errors.name) setErrors({ ...errors, name: undefined });
               if (error) setError(null);
             }}
-            icon="person"
+            icon="person-outline"
             error={errors.name}
-            containerStyle={styles.inputContainer}
           />
 
           <CustomInput
@@ -139,14 +141,13 @@ export default function RegisterScreen() {
             }}
             keyboardType="email-address"
             autoCapitalize="none"
-            icon="mail"
+            icon="mail-outline"
             error={errors.email}
-            containerStyle={styles.inputContainer}
           />
 
           <CustomInput
             label="Contraseña"
-            placeholder="••••••"
+            placeholder="••••••••"
             value={password}
             onChangeText={(text) => {
               setPassword(text);
@@ -154,25 +155,24 @@ export default function RegisterScreen() {
               if (error) setError(null);
             }}
             isPassword
-            icon="lock-closed"
+            icon="lock-closed-outline"
             error={errors.password}
-            containerStyle={styles.inputContainer}
             helper="Mín. 6 caracteres, 1 mayúscula, 1 número"
           />
 
           <CustomInput
             label="Confirmar Contraseña"
-            placeholder="••••••"
+            placeholder="••••••••"
             value={confirmPassword}
             onChangeText={(text) => {
               setConfirmPassword(text);
-              if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
+              if (errors.confirmPassword)
+                setErrors({ ...errors, confirmPassword: undefined });
               if (error) setError(null);
             }}
             isPassword
-            icon="lock-closed"
+            icon="shield-checkmark-outline"
             error={errors.confirmPassword}
-            containerStyle={styles.inputContainer}
           />
 
           <CustomButton
@@ -180,15 +180,20 @@ export default function RegisterScreen() {
             onPress={handleRegister}
             loading={isLoading}
             disabled={isLoading}
+            size="large"
             style={styles.registerButton}
           />
         </View>
 
-        {/* Login Link */}
+        {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>¿Ya tienes cuenta? </Text>
-          <TouchableOpacity onPress={() => router.push('/login')}>
-            <Text style={styles.loginLink}>Inicia sesión</Text>
+          <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
+            ¿Ya tienes cuenta?{' '}
+          </Text>
+          <TouchableOpacity onPress={() => router.push('/login')} activeOpacity={0.7}>
+            <Text style={[styles.loginLink, { color: theme.colors.primary }]}>
+              Inicia sesión
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -199,53 +204,62 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingVertical: 40,
   },
   header: {
-    marginBottom: 40,
+    marginBottom: 32,
+    marginTop: Platform.OS === 'ios' ? 20 : 0,
   },
   backButton: {
-    marginBottom: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
   },
-  backButtonText: {
-    color: COLORS.primary,
-    fontSize: 14,
-    fontWeight: '600',
+  logoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: COLORS.text,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginTop: 8,
+    opacity: 0.8,
   },
   form: {
-    marginBottom: 40,
+    width: '100%',
   },
   errorContainer: {
-    marginBottom: 16,
-  },
-  inputContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   registerButton: {
-    marginTop: 8,
+    marginTop: 16,
+    borderRadius: 16,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 32,
+    marginBottom: 20,
   },
   footerText: {
-    color: COLORS.textLight,
-    fontSize: 14,
+    fontSize: 15,
   },
   loginLink: {
-    color: COLORS.primary,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
   },
 });

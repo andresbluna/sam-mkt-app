@@ -19,7 +19,9 @@ export const Card: React.FC<CardProps> = ({ children, style, pressable, onPress 
         {
           backgroundColor: theme.colors.surface,
           borderColor: theme.colors.border,
-          ...theme.shadows.md,
+          borderRadius: 24,
+          padding: theme.spacing.lg,
+          borderWidth: 1,
         },
         style,
       ]}>
@@ -108,9 +110,6 @@ export const ListItem: React.FC<ListItemProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 16,
     marginBottom: 12,
   },
   section: {

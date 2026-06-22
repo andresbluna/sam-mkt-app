@@ -79,13 +79,14 @@ export const Button: React.FC<ButtonProps> = ({
         styles.button,
         {
           backgroundColor: getBackgroundColor(),
-          borderRadius: theme.borderRadius.lg,
+          borderRadius: 20,
           ...(variant === 'outline' && {
             borderWidth: 2,
             borderColor: theme.colors.primary,
           }),
           ...getPadding(),
           ...(fullWidth && { width: '100%' }),
+          ...((variant === 'primary' || variant === 'secondary') && !disabled && theme.shadows.md),
         },
         style,
       ]}>

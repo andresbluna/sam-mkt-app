@@ -26,15 +26,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="create"
         options={{
-          title: 'Crear',
+          title: 'Crear Post',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="plus.circle.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="posts"
-        options={{
-          title: 'Posts',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="doc.on.doc.fill" color={color} />,
         }}
       />
       <Tabs.Screen

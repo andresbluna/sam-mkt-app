@@ -62,20 +62,20 @@ export default function LoginScreenNew() {
         showsVerticalScrollIndicator={false}>
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <SamLogo size="large" showText={true} />
+          <SamLogo size="large" showText />
         </View>
 
         {/* Título */}
         <View style={styles.titleContainer}>
-          <Text style={[theme.typography.h2, { color: theme.colors.text }]}>
+          <Text style={[theme.typography.h2, { color: theme.colors.text, fontSize: 28 }]}>
             Bienvenido
           </Text>
           <Text
             style={[
-              theme.typography.body,
-              { color: theme.colors.textSecondary, marginTop: theme.spacing.sm },
+              theme.typography.bodyLg,
+              { color: theme.colors.textSecondary, marginTop: theme.spacing.xs },
             ]}>
-            Inicia sesión en tu cuenta
+            Inicia sesión para continuar
           </Text>
         </View>
 
@@ -175,10 +175,12 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
+    marginTop: 40,
     marginBottom: 40,
   },
   titleContainer: {
-    marginBottom: 32,
+    marginBottom: 40,
+    alignItems: 'center',
   },
   errorBanner: {
     borderRadius: 8,

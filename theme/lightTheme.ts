@@ -1,18 +1,18 @@
 export const lightTheme = {
   colors: {
     // Primario (Azul)
-    primary: '#0EA5E9',
-    primaryLight: '#E0F2FE',
-    primaryVariant: '#0284C7',
+    primary: '#6366F1',
+    primaryLight: '#EEF2FF',
+    primaryVariant: '#4F46E5',
     
-    // Secundario (Verde)
-    secondary: '#10B981',
-    secondaryLight: '#D1FAE5',
-    secondaryVariant: '#059669',
+    // Secundario (Violeta/Rosa)
+    secondary: '#EC4899',
+    secondaryLight: '#FDF2F8',
+    secondaryVariant: '#DB2777',
     
     // Gradiente
-    gradientStart: '#0EA5E9',
-    gradientEnd: '#10B981',
+    gradientStart: '#6366F1',
+    gradientEnd: '#EC4899',
     
     // Texto
     text: '#111827',
@@ -67,18 +67,18 @@ export const lightTheme = {
       elevation: 1,
     },
     md: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 5,
-    },
-    lg: {
-      shadowColor: '#000',
+      shadowColor: '#6366F1',
       shadowOffset: { width: 0, height: 10 },
       shadowOpacity: 0.15,
-      shadowRadius: 20,
-      elevation: 10,
+      shadowRadius: 15,
+      elevation: 8,
+    },
+    lg: {
+      shadowColor: '#6366F1',
+      shadowOffset: { width: 0, height: 15 },
+      shadowOpacity: 0.2,
+      shadowRadius: 25,
+      elevation: 12,
     },
   },
   
