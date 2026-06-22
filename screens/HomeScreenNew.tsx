@@ -18,7 +18,7 @@ import { Button } from '@/components/common/Button';
 
 import PostCard from '@/components/ui/PostCard';
 
-import { SamLogo } from '@/components/common/SamLogo';
+import SamLogo from '@/components/common/SamLogo';
 
 export default function HomeScreenNew() {
   const { theme } = useTheme();
@@ -115,7 +115,7 @@ export default function HomeScreenNew() {
         {/* Greeting with Logo */}
         <View style={{ marginTop: theme.spacing.xl, marginBottom: theme.spacing.xl }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.xs }}>
-            <Text style={[theme.typography.h2, { color: theme.colors.text, fontSize: 28, marginRight: theme.spacing.sm }]}>
+            <Text style={[theme.typography.h2, { color: theme.colors.text, fontSize: 32, marginRight: theme.spacing.sm }]}>
               Hola, {user?.name.split(' ')[0]}! 👋
             </Text>
             <SamLogo size="large" showText={false} />

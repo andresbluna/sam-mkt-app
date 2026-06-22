@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PostCard from '@/components/ui/PostCard';
 import { useTheme } from '@/theme/ThemeContext';
-import { SamLogo } from '@/components/common/SamLogo';
+import SamLogo from '@/components/common/SamLogo';
 
 export default function HomeScreen() {
   const { theme } = useTheme();

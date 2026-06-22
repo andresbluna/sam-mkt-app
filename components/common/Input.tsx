@@ -52,7 +52,6 @@ export const Input: React.FC<InputProps> = ({
           isFocused && {
             borderColor: theme.colors.primary,
             backgroundColor: theme.colors.background,
-            ...theme.shadows.sm,
           },
           error && { borderColor: theme.colors.error },
         ]}>
