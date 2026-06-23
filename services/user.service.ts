@@ -2,7 +2,7 @@ import { apiClient } from './api';
 import { User } from '@/types';
 
 class UserService {
-  async getUser(userId: string): Promise<User> {
+  async getUser(userId: number): Promise<User> {
     try {
       const response = await apiClient.getInstance().get<User>(`/users/${userId}`);
       return response.data;
@@ -11,7 +11,7 @@ class UserService {
     }
   }
 
-  async updateUser(userId: string, data: Partial<User>): Promise<User> {
+  async updateUser(userId: number, data: Partial<User>): Promise<User> {
     try {
       const response = await apiClient.getInstance().patch<User>(`/users/${userId}`, data);
       return response.data;
@@ -20,7 +20,7 @@ class UserService {
     }
   }
 
-  async uploadProfileImage(userId: string, imageUri: string): Promise<User> {
+  async uploadProfileImage(userId: number, imageUri: string): Promise<User> {
     try {
       const formData = new FormData();
       

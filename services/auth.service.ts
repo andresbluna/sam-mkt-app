@@ -7,9 +7,7 @@ class AuthService {
     try {
       const response = await apiClient.getInstance().post<AuthResponse>('/auth/login', credentials);
       
-      if (response.data.access_token) {
-        await this.saveAuthData(response.data);
-      }
+      await this.saveAuthData(response.data);
       
       return response.data;
     } catch (error) {
@@ -21,9 +19,7 @@ class AuthService {
     try {
       const response = await apiClient.getInstance().post<AuthResponse>('/auth/register', data);
       
-      if (response.data.access_token) {
-        await this.saveAuthData(response.data);
-      }
+      await this.saveAuthData(response.data);
       
       return response.data;
     } catch (error) {
@@ -43,9 +39,11 @@ class AuthService {
 
   async saveAuthData(data: AuthResponse): Promise<void> {
     try {
-      await AsyncStorage.setItem('authToken', data.access_token);
+      if (data.access_token) {
+        await AsyncStorage.setItem('authToken', data.access_token);
+        apiClient.setAuthToken(data.access_token);
+      }
       await AsyncStorage.setItem('user', JSON.stringify(data.user));
-      apiClient.setAuthToken(data.access_token);
     } catch (error) {
       console.error('Error saving auth data:', error);
     }

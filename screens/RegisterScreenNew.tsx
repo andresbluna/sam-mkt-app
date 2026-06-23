@@ -24,7 +24,6 @@ export default function RegisterScreenNew() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateForm = () => {
@@ -44,17 +43,8 @@ export default function RegisterScreenNew() {
 
     if (!password) {
       newErrors.password = 'La contraseña es requerida';
-    } else {
-      const validation = validatePassword(password);
-      if (!validation.isValid) {
-        newErrors.password = validation.error;
-      }
-    }
-
-    if (!confirmPassword) {
-      newErrors.confirmPassword = 'Confirmar contraseña es requerido';
-    } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Las contraseñas no coinciden';
+    } else if (!validatePassword(password)) {
+      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
     }
 
     setErrors(newErrors);
@@ -119,9 +109,14 @@ export default function RegisterScreenNew() {
             value={name}
             onChangeText={(text) => {
               setName(text);
-              if (errors.name) setErrors({ ...errors, name: undefined });
+              if (errors.name) {
+                const newErrors = { ...errors };
+                delete newErrors.name;
+                setErrors(newErrors);
+              }
               if (error) setError(null);
             }}
+            autoCapitalize="words"
             icon="person"
             error={errors.name}
             containerStyle={{ marginBottom: theme.spacing.lg }}
@@ -133,7 +128,11 @@ export default function RegisterScreenNew() {
             value={email}
             onChangeText={(text) => {
               setEmail(text);
-              if (errors.email) setErrors({ ...errors, email: undefined });
+              if (errors.email) {
+                const newErrors = { ...errors };
+                delete newErrors.email;
+                setErrors(newErrors);
+              }
               if (error) setError(null);
             }}
             keyboardType="email-address"
@@ -149,28 +148,16 @@ export default function RegisterScreenNew() {
             value={password}
             onChangeText={(text) => {
               setPassword(text);
-              if (errors.password) setErrors({ ...errors, password: undefined });
+              if (errors.password) {
+                const newErrors = { ...errors };
+                delete newErrors.password;
+                setErrors(newErrors);
+              }
               if (error) setError(null);
             }}
-            isPassword
-            icon="lock-closed"
+            secureTextEntry
+            icon="lock"
             error={errors.password}
-            helper="Min 6 caracteres, mayúscula y número"
-            containerStyle={{ marginBottom: theme.spacing.lg }}
-          />
-
-          <Input
-            label="Confirmar Contraseña"
-            placeholder="••••••••"
-            value={confirmPassword}
-            onChangeText={(text) => {
-              setConfirmPassword(text);
-              if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
-              if (error) setError(null);
-            }}
-            isPassword
-            icon="lock-closed"
-            error={errors.confirmPassword}
             containerStyle={{ marginBottom: theme.spacing.xl }}
           />
 
@@ -179,7 +166,7 @@ export default function RegisterScreenNew() {
             title="Crear Cuenta"
             onPress={handleRegister}
             loading={isLoading}
-            disabled={isLoading || !name || !email || !password || !confirmPassword}
+            disabled={isLoading || !name || !email || !password}
             fullWidth
           />
         </View>

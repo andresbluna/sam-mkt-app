@@ -12,14 +12,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import CustomInput from '@/components/ui/CustomInput';
 import CustomButton from '@/components/ui/CustomButton';
 import ErrorMessage from '@/components/ui/ErrorMessage';
-import { validateEmail } from '@/utils/validation';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
 import SamLogo from '@/components/common/SamLogo';
 
 interface LoginErrors {
-    email?: string;
-    password?: string;
+    uuid?: string;
 }
 
 export default function LoginScreen() {
@@ -27,21 +25,14 @@ export default function LoginScreen() {
     const { login, isLoading, error, setError } = useAuth();
     const router = useRouter();
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [uuid, setUuid] = useState('');
     const [errors, setErrors] = useState<LoginErrors>({});
 
     const validateForm = (): boolean => {
         const newErrors: LoginErrors = {};
 
-        if (!email) {
-            newErrors.email = 'El correo es requerido';
-        } else if (!validateEmail(email)) {
-            newErrors.email = 'El correo no es válido';
-        }
-
-        if (!password) {
-            newErrors.password = 'La contraseña es requerida';
+        if (!uuid) {
+            newErrors.uuid = 'El identificador único (UUID) es requerido';
         }
 
         setErrors(newErrors);
@@ -52,7 +43,7 @@ export default function LoginScreen() {
         if (!validateForm()) return;
 
         try {
-            await login({ email, password });
+            await login({ uuid });
             router.replace('/(tabs)');
         } catch (err) {
             console.error('Login error:', err);
@@ -88,46 +79,18 @@ export default function LoginScreen() {
                     )}
 
                     <CustomInput
-                        label="Correo Electrónico"
-                        placeholder="tu@email.com"
-                        value={email}
+                        label="Identificador Único (UUID)"
+                        placeholder="Ingresa tu UUID"
+                        value={uuid}
                         onChangeText={(text) => {
-                            setEmail(text);
-                            if (errors.email) setErrors({ ...errors, email: undefined });
+                            setUuid(text);
+                            if (errors.uuid) setErrors({ ...errors, uuid: undefined });
                             if (error) setError(null);
                         }}
-                        keyboardType="email-address"
                         autoCapitalize="none"
-                        icon="mail-outline"
-                        error={errors.email}
+                        icon="key"
+                        error={errors.uuid}
                     />
-
-                    <CustomInput
-                        label="Contraseña"
-                        placeholder="••••••••"
-                        value={password}
-                        onChangeText={(text) => {
-                            setPassword(text);
-                            if (errors.password)
-                                setErrors({ ...errors, password: undefined });
-                            if (error) setError(null);
-                        }}
-                        isPassword
-                        icon="lock-closed-outline"
-                        error={errors.password}
-                    />
-
-                    <TouchableOpacity
-                        style={styles.forgotPassword}
-                        activeOpacity={0.7}>
-                        <Text
-                            style={[
-                                styles.forgotPasswordText,
-                                { color: theme.colors.primary },
-                            ]}>
-                            ¿Olvidó su contraseña?
-                        </Text>
-                    </TouchableOpacity>
 
                     <CustomButton
                         title="Iniciar Sesión"
