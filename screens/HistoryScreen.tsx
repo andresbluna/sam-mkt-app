@@ -54,20 +54,20 @@ export default function HistoryScreen() {
         type: 'created',
         title: 'Publicación Creada',
         description:
-          post.caption.substring(0, 50) + (post.caption.length > 50 ? '...' : ''),
-        date: new Date(post.createdAt),
+          post.content.substring(0, 50) + (post.content.length > 50 ? '...' : ''),
+        date: new Date(post.created_at),
         icon: 'create',
         color: COLORS.primary,
       });
 
       // Published event
-      if (post.status === 'published' && post.publishedAt) {
+      if (post.status === 'published') {
         timelineEvents.push({
           id: `${post.id}-published`,
           type: 'published',
           title: 'Publicación Publicada',
           description: 'Publicado en Instagram',
-          date: new Date(post.publishedAt),
+          date: new Date(post.updated_at),
           icon: 'share-social',
           color: COLORS.success,
         });

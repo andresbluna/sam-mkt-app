@@ -20,7 +20,7 @@ class PostService {
     }
   }
 
-  async getPost(postId: string): Promise<Post> {
+  async getPost(postId: number): Promise<Post> {
     try {
       const response = await apiClient.getInstance().get<Post>(`/posts/${postId}`);
       return response.data;
@@ -29,7 +29,7 @@ class PostService {
     }
   }
 
-  async updatePost(postId: string, data: UpdatePostRequest): Promise<Post> {
+  async updatePost(postId: number, data: UpdatePostRequest): Promise<Post> {
     try {
       const response = await apiClient.getInstance().patch<Post>(`/posts/${postId}`, data);
       return response.data;
@@ -38,7 +38,7 @@ class PostService {
     }
   }
 
-  async deletePost(postId: string): Promise<void> {
+  async deletePost(postId: number): Promise<void> {
     try {
       await apiClient.getInstance().delete(`/posts/${postId}`);
     } catch (error) {
@@ -46,11 +46,32 @@ class PostService {
     }
   }
 
-  async publishPost(postId: string, platform: string): Promise<{ success: boolean; message: string }> {
+  async generateContent(prompt: string): Promise<any> {
+    try {
+      const response = await apiClient.getInstance().post('/posts/generate/content', {
+        prompt,
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async publishPost(postId: number, imageUrl: string, caption: string): Promise<any> {
     try {
       const response = await apiClient.getInstance().post(`/posts/${postId}/publish`, {
-        platform,
+        imageUrl,
+        caption,
       });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getPostStats(postId: number): Promise<any> {
+    try {
+      const response = await apiClient.getInstance().get(`/posts/${postId}/stats`);
       return response.data;
     } catch (error) {
       throw error;

@@ -7,8 +7,8 @@ interface UserContextType {
   userProfile: User | null;
   isLoading: boolean;
   error: string | null;
-  fetchUserProfile: (userId: string) => Promise<void>;
-  updateUserProfile: (userId: string, data: Partial<User>) => Promise<void>;
+  fetchUserProfile: (userId: number) => Promise<void>;
+  updateUserProfile: (userId: number, data: Partial<User>) => Promise<void>;
   setError: (error: string | null) => void;
 }
 
@@ -34,7 +34,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user?.id]);
 
-  const fetchUserProfile = useCallback(async (userId: string) => {
+  const fetchUserProfile = useCallback(async (userId: number) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -50,7 +50,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const updateUserProfile = useCallback(async (userId: string, data: Partial<User>) => {
+  const updateUserProfile = useCallback(async (userId: number, data: Partial<User>) => {
     try {
       setIsLoading(true);
       setError(null);

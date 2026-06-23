@@ -55,8 +55,11 @@ export default function CreatePostScreen() {
       setError(null);
 
       const result = await geminiService.generateContent(prompt);
-      setCaption(result.caption);
-      setHashtags(result.hashtags);
+      // Ajustar según la respuesta real del backend (asumimos content o caption)
+      setCaption(result.content || result.caption || "");
+      if (result.hashtags) {
+        setHashtags(result.hashtags);
+      }
       setStep('content');
     } catch (err: any) {
       setError(
@@ -91,14 +94,13 @@ export default function CreatePostScreen() {
     try {
       setError(null);
       await createPost({
-        caption,
-        hashtags,
+        content: caption,
         title: prompt.substring(0, 50),
       });
 
       setSuccess('Publicación creada exitosamente');
       setTimeout(() => {
-        router.push('/(tabs)/posts');
+        router.push('/(tabs)');
       }, 1500);
     } catch (err: any) {
       setError(

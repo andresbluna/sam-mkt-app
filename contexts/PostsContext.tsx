@@ -8,9 +8,9 @@ interface PostsContextType {
   error: string | null;
   fetchPosts: () => Promise<void>;
   createPost: (data: CreatePostRequest) => Promise<Post>;
-  updatePost: (postId: string, data: UpdatePostRequest) => Promise<void>;
-  deletePost: (postId: string) => Promise<void>;
-  publishPost: (postId: string, platform: string) => Promise<void>;
+  updatePost: (postId: number, data: UpdatePostRequest) => Promise<void>;
+  deletePost: (postId: number) => Promise<void>;
+  publishPost: (postId: number, imageUrl: string, caption: string) => Promise<void>;
   setError: (error: string | null) => void;
 }
 
@@ -66,7 +66,7 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  const updatePost = useCallback(async (postId: string, data: UpdatePostRequest) => {
+  const updatePost = useCallback(async (postId: number, data: UpdatePostRequest) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -83,7 +83,7 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  const deletePost = useCallback(async (postId: string) => {
+  const deletePost = useCallback(async (postId: number) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -100,17 +100,17 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  const publishPost = useCallback(async (postId: string, platform: string) => {
+  const publishPost = useCallback(async (postId: number, imageUrl: string, caption: string) => {
     try {
       setIsLoading(true);
       setError(null);
       
-      await postService.publishPost(postId, platform);
+      await postService.publishPost(postId, imageUrl, caption);
       
       // Update post status in local state
       setPosts((prev) =>
         prev.map((post) =>
-          post.id === postId ? { ...post, status: 'published' as const } : post
+          post.id === postId ? { ...post, status: 'published' } : post
         )
       );
     } catch (err: any) {

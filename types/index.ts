@@ -11,40 +11,40 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  access_token: string;
+  access_token?: string; // Sigue siendo opcional por si el backend lo implementa después
   user: User;
 }
 
 // User Types
 export interface User {
-  id: string;
+  id: number;
+  uuid: string;
   email: string;
   name: string;
-  profileImage?: string;
   plan?: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Post Types
 export interface Post {
-  id: string;
-  userId: string;
-  title?: string;
-  caption: string;
-  hashtags: string[];
-  image?: string;
-  status: 'draft' | 'published' | 'scheduled';
-  publishedAt?: string;
-  createdAt: string;
-  updatedAt: string;
+  id: number;
+  user_id: number;
+  title: string;
+  content: string;
+  image_url?: string;
+  platform: string;
+  status: string;
+  instagram_media_id?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CreatePostRequest {
-  caption: string;
-  hashtags: string[];
-  image?: string;
-  title?: string;
+  title: string;
+  content: string;
+  image_url?: string;
+  platform?: string;
 }
 
 export interface UpdatePostRequest {

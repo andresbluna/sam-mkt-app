@@ -29,9 +29,9 @@ export default function LoginScreenNew() {
     const newErrors: { email?: string; password?: string } = {};
 
     if (!email) {
-      newErrors.email = 'El correo es requerido';
+      newErrors.email = 'El correo electrónico es requerido';
     } else if (!validateEmail(email)) {
-      newErrors.email = 'Correo inválido';
+      newErrors.email = 'El correo electrónico no es válido';
     }
 
     if (!password) {
@@ -96,18 +96,18 @@ export default function LoginScreenNew() {
         <View style={styles.form}>
           <Input
             label="Correo Electrónico"
-            placeholder="tu@email.com"
+            placeholder="correo@ejemplo.com"
             value={email}
             onChangeText={(text) => {
               setEmail(text);
               if (errors.email) setErrors({ ...errors, email: undefined });
               if (error) setError(null);
             }}
-            keyboardType="email-address"
             autoCapitalize="none"
+            keyboardType="email-address"
             icon="mail"
             error={errors.email}
-            containerStyle={{ marginBottom: theme.spacing.lg }}
+            containerStyle={{ marginBottom: theme.spacing.md }}
           />
 
           <Input
@@ -119,18 +119,11 @@ export default function LoginScreenNew() {
               if (errors.password) setErrors({ ...errors, password: undefined });
               if (error) setError(null);
             }}
-            isPassword
-            icon="lock-closed"
+            secureTextEntry
+            icon="lock"
             error={errors.password}
             containerStyle={{ marginBottom: theme.spacing.lg }}
           />
-
-          {/* Forgot Password */}
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={[theme.typography.bodySm, { color: theme.colors.primary }]}>
-              ¿Olvidó su contraseña?
-            </Text>
-          </TouchableOpacity>
 
           {/* Login Button */}
           <Button

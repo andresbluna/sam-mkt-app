@@ -66,10 +66,10 @@ const PostCard: React.FC<PostCardProps> = ({
       ]}
       onPress={onPress}
       activeOpacity={0.9}>
-      {post.image && (
+      {post.image_url && (
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: post.image }}
+            source={{ uri: post.image_url }}
             style={styles.image}
             contentFit="cover"
             transition={300}
@@ -90,7 +90,7 @@ const PostCard: React.FC<PostCardProps> = ({
       )}
 
       <View style={styles.content}>
-        {!post.image && (
+        {!post.image_url && (
           <View style={styles.header}>
             <View
               style={[
@@ -107,15 +107,21 @@ const PostCard: React.FC<PostCardProps> = ({
           </View>
         )}
 
+        {post.title && (
+          <Text style={[styles.title, { color: theme.colors.text, fontWeight: 'bold', marginBottom: 4 }]}>
+            {post.title}
+          </Text>
+        )}
+
         <Text
           style={[styles.caption, { color: theme.colors.text }]}
           numberOfLines={3}>
-          {post.caption}
+          {post.content}
         </Text>
 
         <View style={styles.footerRow}>
           <Text style={[styles.date, { color: theme.colors.textTertiary }]}>
-            {formatDistanceToNow(new Date(post.createdAt), {
+            {formatDistanceToNow(new Date(post.created_at), {
               addSuffix: true,
               locale: es,
             })}
