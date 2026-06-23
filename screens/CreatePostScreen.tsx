@@ -9,6 +9,8 @@ import {
   SafeAreaView,
   TouchableOpacity,
   TextInput,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { usePosts } from '@/contexts/PostsContext';
 import { useRouter } from 'expo-router';
@@ -29,12 +31,18 @@ const COLORS = {
   text: '#1F2937',
   textLight: '#6B7280',
   border: '#E5E7EB',
+  error: '#EF4444',
 };
 
 export default function CreatePostScreen() {
   const { createPost, isLoading: isCreatingPost } = usePosts();
   const router = useRouter();
 
+  // Estados para la imagen
+  const [image, setImage] = useState<string | null>(null);
+  const [imageFormat, setImageFormat] = useState<string>('png');
+
+  // Estados del flujo
   const [step, setStep] = useState<'prompt' | 'content'>('prompt');
   const [prompt, setPrompt] = useState('');
   const [caption, setCaption] = useState('');
@@ -44,6 +52,7 @@ export default function CreatePostScreen() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // Genera contenido + imagen desde el backend
   const handleGenerateContent = async () => {
     if (!validatePrompt(prompt)) {
       setError('El prompt debe tener al menos 10 caracteres');
@@ -53,18 +62,30 @@ export default function CreatePostScreen() {
     try {
       setIsGenerating(true);
       setError(null);
+      setImage(null); // resetear imagen anterior
 
       const result = await geminiService.generateContent(prompt);
-      // Ajustar según la respuesta real del backend (asumimos content o caption)
-      setCaption(result.content || result.caption || "");
+
+      // === NUEVO: capturar imagen ===
+      if (result.image) {
+        setImage(result.image);
+        setImageFormat(result.format || 'png');
+      } else {
+        // Si el backend no devuelve imagen, podemos mostrar un placeholder o error
+        setError('No se generó ninguna imagen. Intenta con otro prompt.');
+      }
+
+      // Capturar texto y hashtags (pueden venir o no)
+      setCaption(result.caption || result.content || '');
       if (result.hashtags) {
         setHashtags(result.hashtags);
       }
+
       setStep('content');
     } catch (err: any) {
       setError(
-        err?.response?.data?.message ||
-        'Error al generar contenido. Intenta de nuevo.'
+          err?.response?.data?.message ||
+          'Error al generar contenido. Intenta de nuevo.'
       );
     } finally {
       setIsGenerating(false);
@@ -96,6 +117,8 @@ export default function CreatePostScreen() {
       await createPost({
         content: caption,
         title: prompt.substring(0, 50),
+        // Si tu backend espera la imagen, puedes incluirla aquí
+        image: image ? `data:image/${imageFormat};base64,${image}` : undefined,
       });
 
       setSuccess('Publicación creada exitosamente');
@@ -104,202 +127,231 @@ export default function CreatePostScreen() {
       }, 1500);
     } catch (err: any) {
       setError(
-        err?.response?.data?.message ||
-        'Error al crear la publicación'
+          err?.response?.data?.message ||
+          'Error al crear la publicación'
       );
     }
   };
 
+  // Función para construir la URI válida para React Native
+  const getImageUri = () => {
+    if (!image) return null;
+    return `data:image/${imageFormat};base64,${image}`;
+  };
+
+  // ========== PASO 1: PROMPT ==========
   if (step === 'prompt') {
     return (
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.container}>
+          <SafeAreaView style={styles.safeArea}>
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}>
+              {/* Header */}
+              <View style={styles.header}>
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    style={styles.backButton}>
+                  <Ionicons name="chevron-back" size={24} color={COLORS.primary} />
+                </TouchableOpacity>
+                <Text style={styles.title}>Generar Contenido</Text>
+                <View style={{ width: 24 }} />
+              </View>
+
+              {/* Info */}
+              <View style={styles.infoCard}>
+                <Ionicons name="lightbulb" size={24} color={COLORS.secondary} />
+                <Text style={styles.infoText}>
+                  Describe qué deseas promocionar y nuestra IA generará contenido e imagen
+                </Text>
+              </View>
+
+              {error && (
+                  <ErrorMessage
+                      message={error}
+                      onClose={() => setError(null)}
+                  />
+              )}
+
+              {/* Prompt Input */}
+              <Text style={styles.label}>¿Qué deseas promocionar?</Text>
+              <TextInput
+                  style={styles.promptInput}
+                  placeholder="Ej: Hamburguesa gourmet con queso artesanal"
+                  placeholderTextColor={COLORS.textLight}
+                  value={prompt}
+                  onChangeText={(text) => {
+                    setPrompt(text);
+                    if (error) setError(null);
+                  }}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+              />
+
+              <Text style={styles.helperText}>
+                Cuántos más detalles proporciones, mejor será el contenido
+              </Text>
+
+              {/* Examples */}
+              <View style={styles.examplesContainer}>
+                <Text style={styles.examplesTitle}>Ejemplos:</Text>
+                {[
+                  'Promocionar un descuento especial de verano',
+                  'Lanzar un nuevo producto de belleza',
+                  'Aumentar asistencia al restaurante en fin de semana',
+                ].map((example, index) => (
+                    <TouchableOpacity
+                        key={index}
+                        style={styles.exampleItem}
+                        onPress={() => setPrompt(example)}>
+                      <Text style={styles.exampleText}>{example}</Text>
+                    </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            {/* Generate Button */}
+            <View style={styles.footer}>
+              <CustomButton
+                  title={isGenerating ? 'Generando...' : 'Generar Contenido'}
+                  onPress={handleGenerateContent}
+                  loading={isGenerating}
+                  disabled={isGenerating || !prompt.trim()}
+              />
+            </View>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
+    );
+  }
+
+  // ========== PASO 2: CONTENIDO + IMAGEN ==========
+  return (
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}>
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
           <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}>
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}>
             {/* Header */}
             <View style={styles.header}>
               <TouchableOpacity
-                onPress={() => router.back()}
-                style={styles.backButton}>
+                  onPress={() => setStep('prompt')}
+                  style={styles.backButton}>
                 <Ionicons name="chevron-back" size={24} color={COLORS.primary} />
               </TouchableOpacity>
-              <Text style={styles.title}>Generar Contenido</Text>
+              <Text style={styles.title}>Editar Contenido</Text>
               <View style={{ width: 24 }} />
             </View>
 
-            {/* Info */}
-            <View style={styles.infoCard}>
-              <Ionicons name="lightbulb" size={24} color={COLORS.secondary} />
-              <Text style={styles.infoText}>
-                Describe qué deseas promocionar y nuestra IA generará contenido
-              </Text>
-            </View>
-
             {error && (
-              <ErrorMessage 
-                message={error} 
-                onClose={() => setError(null)}
-              />
+                <ErrorMessage
+                    message={error}
+                    onClose={() => setError(null)}
+                />
             )}
 
-            {/* Prompt Input */}
-            <Text style={styles.label}>¿Qué deseas promocionar?</Text>
+            {success && (
+                <SuccessMessage message={success} />
+            )}
+
+            {/* === NUEVO: Vista previa de la imagen === */}
+            <Text style={styles.label}>Imagen generada</Text>
+            <View style={styles.imageContainer}>
+              {image ? (
+                  <Image
+                      source={{ uri: getImageUri()! }}
+                      style={styles.imagePreview}
+                      resizeMode="cover"
+                      onError={(e) => {
+                        console.warn('Error al cargar imagen:', e.nativeEvent.error);
+                        setError('No se pudo cargar la imagen. Intenta regenerar.');
+                      }}
+                  />
+              ) : (
+                  <View style={styles.imagePlaceholder}>
+                    <Ionicons name="image-outline" size={40} color={COLORS.textLight} />
+                    <Text style={styles.imagePlaceholderText}>No hay imagen</Text>
+                  </View>
+              )}
+            </View>
+
+            {/* Caption */}
+            <Text style={styles.label}>Contenido</Text>
             <TextInput
-              style={styles.promptInput}
-              placeholder="Ej: Hamburguesa gourmet con queso artesanal"
-              placeholderTextColor={COLORS.textLight}
-              value={prompt}
-              onChangeText={(text) => {
-                setPrompt(text);
-                if (error) setError(null);
-              }}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
+                style={styles.captionInput}
+                placeholder="Edita el contenido generado"
+                placeholderTextColor={COLORS.textLight}
+                value={caption}
+                onChangeText={(text) => {
+                  setCaption(text);
+                  if (error) setError(null);
+                }}
+                multiline
+                numberOfLines={6}
+                textAlignVertical="top"
             />
 
-            <Text style={styles.helperText}>
-              Cuántos más detalles proporciones, mejor será el contenido
-            </Text>
-
-            {/* Examples */}
-            <View style={styles.examplesContainer}>
-              <Text style={styles.examplesTitle}>Ejemplos:</Text>
-              {[
-                'Promocionar un descuento especial de verano',
-                'Lanzar un nuevo producto de belleza',
-                'Aumentar asistencia al restaurante en fin de semana',
-              ].map((example, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.exampleItem}
-                  onPress={() => setPrompt(example)}>
-                  <Text style={styles.exampleText}>{example}</Text>
-                </TouchableOpacity>
-              ))}
+            {/* Hashtags */}
+            <Text style={styles.label}>Hashtags</Text>
+            <View style={styles.hashtagInput}>
+              <TextInput
+                  style={styles.hashtagInputField}
+                  placeholder="Agregar hashtag"
+                  placeholderTextColor={COLORS.textLight}
+                  value={hashtagInput}
+                  onChangeText={setHashtagInput}
+                  onSubmitEditing={addHashtag}
+              />
+              <TouchableOpacity
+                  onPress={addHashtag}
+                  style={styles.addHashtagButton}>
+                <Ionicons name="add" size={20} color={COLORS.white} />
+              </TouchableOpacity>
             </View>
+
+            {/* Hashtags List */}
+            {hashtags.length > 0 && (
+                <View style={styles.hashtagsList}>
+                  {hashtags.map((tag, index) => (
+                      <View key={index} style={styles.hashtagBadge}>
+                        <Text style={styles.hashtagBadgeText}>#{tag}</Text>
+                        <TouchableOpacity
+                            onPress={() => removeHashtag(index)}
+                            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                          <Ionicons name="close" size={14} color={COLORS.white} />
+                        </TouchableOpacity>
+                      </View>
+                  ))}
+                </View>
+            )}
           </ScrollView>
 
-          {/* Generate Button */}
+          {/* Buttons */}
           <View style={styles.footer}>
             <CustomButton
-              title={isGenerating ? 'Generando...' : 'Generar Contenido'}
-              onPress={handleGenerateContent}
-              loading={isGenerating}
-              disabled={isGenerating || !prompt.trim()}
+                title="Volver"
+                onPress={() => setStep('prompt')}
+                variant="secondary"
+                style={{ flex: 1, marginRight: 8 }}
+            />
+            <CustomButton
+                title="Crear Publicación"
+                onPress={handleCreatePost}
+                loading={isCreatingPost}
+                disabled={isCreatingPost}
+                style={{ flex: 1 }}
             />
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
-    );
-  }
-
-  // Content editing step
-  return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() => setStep('prompt')}
-              style={styles.backButton}>
-              <Ionicons name="chevron-back" size={24} color={COLORS.primary} />
-            </TouchableOpacity>
-            <Text style={styles.title}>Editar Contenido</Text>
-            <View style={{ width: 24 }} />
-          </View>
-
-          {error && (
-            <ErrorMessage 
-              message={error} 
-              onClose={() => setError(null)}
-            />
-          )}
-
-          {success && (
-            <SuccessMessage message={success} />
-          )}
-
-          {/* Caption */}
-          <Text style={styles.label}>Contenido</Text>
-          <TextInput
-            style={styles.captionInput}
-            placeholder="Edita el contenido generado"
-            placeholderTextColor={COLORS.textLight}
-            value={caption}
-            onChangeText={(text) => {
-              setCaption(text);
-              if (error) setError(null);
-            }}
-            multiline
-            numberOfLines={6}
-            textAlignVertical="top"
-          />
-
-          {/* Hashtags */}
-          <Text style={styles.label}>Hashtags</Text>
-          <View style={styles.hashtagInput}>
-            <TextInput
-              style={styles.hashtagInputField}
-              placeholder="Agregar hashtag"
-              placeholderTextColor={COLORS.textLight}
-              value={hashtagInput}
-              onChangeText={setHashtagInput}
-              onSubmitEditing={addHashtag}
-            />
-            <TouchableOpacity
-              onPress={addHashtag}
-              style={styles.addHashtagButton}>
-              <Ionicons name="add" size={20} color={COLORS.white} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Hashtags List */}
-          {hashtags.length > 0 && (
-            <View style={styles.hashtagsList}>
-              {hashtags.map((tag, index) => (
-                <View key={index} style={styles.hashtagBadge}>
-                  <Text style={styles.hashtagBadgeText}>#{tag}</Text>
-                  <TouchableOpacity
-                    onPress={() => removeHashtag(index)}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                    <Ionicons name="close" size={14} color={COLORS.white} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
-        </ScrollView>
-
-        {/* Buttons */}
-        <View style={styles.footer}>
-          <CustomButton
-            title="Volver"
-            onPress={() => setStep('prompt')}
-            variant="secondary"
-            style={{ flex: 1, marginRight: 8 }}
-          />
-          <CustomButton
-            title="Crear Publicación"
-            onPress={handleCreatePost}
-            loading={isCreatingPost}
-            disabled={isCreatingPost}
-            style={{ flex: 1 }}
-          />
-        </View>
-      </SafeAreaView>
-    </KeyboardAvoidingView>
   );
 }
 
+// ========== ESTILOS ==========
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -401,6 +453,33 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: '500',
   },
+  // --- Estilos para la imagen ---
+  imageContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 24,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imagePreview: {
+    width: '100%',
+    height: '100%',
+  },
+  imagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  imagePlaceholderText: {
+    color: COLORS.textLight,
+    marginTop: 8,
+    fontSize: 14,
+  },
+  // --- Hashtags ---
   hashtagInput: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -461,4 +540,3 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 });
-
