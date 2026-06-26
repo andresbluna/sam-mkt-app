@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -11,6 +11,7 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { usePosts } from '@/contexts/PostsContext';
 import { useAuth } from '@/contexts/AuthContext'; // 👈 asumo que tienes este contexto
@@ -22,7 +23,10 @@ import ErrorMessage from '@/components/ui/ErrorMessage';
 import SuccessMessage from '@/components/ui/SuccessMessage';
 import { geminiService } from '@/services/gemini.service';
 import { instagramService } from '@/services/instagram.service'; // 👈 nuevo servicio
+import { socialService } from '@/services/social.service';
+import { storageService } from '@/services/storage.service';
 import { validatePrompt } from '@/utils/validation';
+import { SocialAccount } from '@/types';
 
 const COLORS = {
   primary: '#2563EB',
@@ -54,18 +58,87 @@ export default function CreatePostScreen() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // Estados de Instagram
+  const [instagramAccount, setInstagramAccount] = useState<SocialAccount | null>(null);
+  const [isPublishingToInstagram, setIsPublishingToInstagram] = useState(false);
+  const [loadingInstagramAccount, setLoadingInstagramAccount] = useState(false);
+
+  // Verificar si Instagram está conectado al cargar
+  useEffect(() => {
+    checkInstagramConnection();
+  }, []);
+
+  const checkInstagramConnection = async () => {
+    if (!user?.id) return;
+    try {
+      setLoadingInstagramAccount(true);
+      
+      // Usar el nuevo endpoint de status
+      const status = await instagramService.getConnectionStatus(user.id);
+      
+      console.log('=== CreatePost: Instagram Status ===');
+      console.log('connected:', status.connected);
+      console.log('igUserId:', status.igUserId);
+      console.log('====================================');
+      
+      if (status.connected) {
+        setInstagramAccount({
+          id: 0,
+          userId: user.id,
+          platform: 'instagram',
+          accountId: status.igUserId || '',
+          accountName: status.igUserId,
+          pageId: status.pageId,
+          igUserId: status.igUserId,
+          status: 'connected',
+        });
+      } else {
+        setInstagramAccount(null);
+      }
+    } catch (error: any) {
+      console.error('Error checking Instagram connection:', error);
+      if (error?.response?.status === 404 || error?.response?.data?.connected === false) {
+        setInstagramAccount(null);
+      }
+    } finally {
+      setLoadingInstagramAccount(false);
+    }
+  };
+
   // 👇 Función para conectar Instagram
   const handleConnectInstagram = async () => {
+    console.log('=== CreatePost: handleConnectInstagram DEBUG ===');
+    console.log('user:', user);
+    console.log('user?.id:', user?.id);
+    console.log('===============================================');
+    
     try {
-      if (!user?.id) {
-        setError('Usuario no autenticado. Inicia sesión primero.');
+      if (!user) {
+        setError('No hay sesión activa en la app SAM-MKT. Inicia sesión primero.');
         return;
       }
-      const loginUrl = await instagramService.getLoginUrl(user.id);
-      await Linking.openURL(loginUrl);
-    } catch (err) {
+      
+      if (!user.id) {
+        setError('El usuario no tiene ID. Intenta cerrar sesión y volver a iniciar sesión.');
+        return;
+      }
+      
+      // Obtener URL de OAuth desde el backend (requiere token JWT)
+      const oauthUrl = await instagramService.getOAuthUrl(user.id);
+      console.log('Opening Instagram OAuth URL:', oauthUrl);
+      
+      await Linking.openURL(oauthUrl);
+      
+      // Verificar después de un momento
+      setTimeout(() => {
+        checkInstagramConnection();
+      }, 3000);
+    } catch (err: any) {
       console.error('Error al conectar Instagram:', err);
-      setError('No se pudo iniciar la conexión con Instagram. Intenta de nuevo.');
+      const errorMessage = err?.response?.data?.message 
+        || err?.message 
+        || 'No se pudo iniciar la conexión con Instagram. Intenta de nuevo.';
+      setError(errorMessage);
     }
   };
 
@@ -143,6 +216,99 @@ export default function CreatePostScreen() {
           err?.response?.data?.message ||
           'Error al crear la publicación'
       );
+    }
+  };
+
+  /**
+   * Publica el contenido generado directamente en Instagram
+   * Flujo completo:
+   * 1. Verificar que Instagram esté conectado
+   * 2. Subir la imagen base64 a un storage público
+   * 3. Llamar a POST /instagram/publish con la URL
+   */
+  const handlePublishToInstagram = async () => {
+    if (!instagramAccount) {
+      Alert.alert(
+        'Instagram no conectado',
+        'Debes conectar tu cuenta de Instagram antes de publicar.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Conectar ahora', onPress: handleConnectInstagram },
+        ]
+      );
+      return;
+    }
+
+    if (!image) {
+      setError('No hay imagen para publicar');
+      return;
+    }
+
+    if (!caption.trim()) {
+      setError('Debes agregar un caption antes de publicar');
+      return;
+    }
+
+    try {
+      setIsPublishingToInstagram(true);
+      setError(null);
+
+      // Paso 1: Subir imagen a storage y obtener URL pública
+      // NOTA: Necesitas configurar un endpoint /storage/upload en el backend
+      // o usar Cloudinary directamente (ver storageService.ts)
+      
+      let publicImageUrl: string;
+      
+      try {
+        // Intentar con el endpoint del backend primero
+        publicImageUrl = await storageService.uploadImage(image, imageFormat);
+      } catch (storageError) {
+        // Si falla, puedes usar Cloudinary directamente
+        // Descomenta y configura tus credenciales:
+        /*
+        const cloudName = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME || '';
+        const uploadPreset = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '';
+        publicImageUrl = await storageService.uploadToCloudinary(
+          image,
+          imageFormat,
+          cloudName,
+          uploadPreset
+        );
+        */
+        throw new Error('No se pudo subir la imagen. Configura el servicio de storage.');
+      }
+
+      // Paso 2: Construir el caption final con hashtags
+      const hashtagsText = hashtags.length > 0 
+        ? '\n\n' + hashtags.map(h => `#${h}`).join(' ')
+        : '';
+      const fullCaption = caption + hashtagsText;
+
+      // Paso 3: Publicar en Instagram
+      const result = await instagramService.publishPost(publicImageUrl, fullCaption);
+
+      if (result.success) {
+        setSuccess(`¡Publicado en Instagram! Media ID: ${result.mediaId}`);
+        
+        // También guardar en el sistema local
+        await createPost({
+          content: fullCaption,
+          title: prompt.substring(0, 50),
+          image: `data:image/${imageFormat};base64,${image}`,
+        });
+
+        setTimeout(() => {
+          router.push('/(tabs)');
+        }, 2000);
+      }
+    } catch (err: any) {
+      console.error('Error publishing to Instagram:', err);
+      const errorMessage = err?.response?.data?.message 
+        || err?.message 
+        || 'Error al publicar en Instagram. Intenta de nuevo.';
+      setError(errorMessage);
+    } finally {
+      setIsPublishingToInstagram(false);
     }
   };
 
@@ -353,19 +519,47 @@ export default function CreatePostScreen() {
 
           {/* Buttons */}
           <View style={styles.footer}>
-            <CustomButton
-                title="Volver"
-                onPress={() => setStep('prompt')}
-                variant="secondary"
-                style={{ flex: 1, marginRight: 8 }}
-            />
-            <CustomButton
-                title="Crear Publicación"
-                onPress={handleCreatePost}
-                loading={isCreatingPost}
-                disabled={isCreatingPost}
-                style={{ flex: 1 }}
-            />
+            <View style={styles.buttonRow}>
+              <CustomButton
+                  title="Volver"
+                  onPress={() => setStep('prompt')}
+                  variant="secondary"
+                  style={{ flex: 1, marginRight: 8 }}
+              />
+              <CustomButton
+                  title="Guardar Borrador"
+                  onPress={handleCreatePost}
+                  loading={isCreatingPost}
+                  disabled={isCreatingPost || isPublishingToInstagram}
+                  style={{ flex: 1 }}
+              />
+            </View>
+            
+            {/* Instagram Publish Button */}
+            {instagramAccount ? (
+              <CustomButton
+                  title={isPublishingToInstagram ? 'Publicando en Instagram...' : 'Publicar en Instagram'}
+                  onPress={handlePublishToInstagram}
+                  loading={isPublishingToInstagram}
+                  disabled={isCreatingPost || isPublishingToInstagram}
+                  style={[styles.instagramPublishButton, { marginTop: 12 }]}
+                  icon={
+                    <View style={styles.instagramIconContainer}>
+                      <Ionicons name="logo-instagram" size={20} color={COLORS.white} />
+                    </View>
+                  }
+              />
+            ) : (
+              <TouchableOpacity
+                  style={[styles.instagramConnectButton, { marginTop: 12 }]}
+                  onPress={handleConnectInstagram}
+                  disabled={loadingInstagramAccount}>
+                <Ionicons name="logo-instagram" size={20} color={COLORS.white} />
+                <Text style={styles.instagramConnectText}>
+                  {loadingInstagramAccount ? 'Verificando...' : 'Conectar Instagram para publicar'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -555,6 +749,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
+  },
+  buttonRow: {
     flexDirection: 'row',
     gap: 12,
   },
@@ -573,6 +769,27 @@ const styles = StyleSheet.create({
   instagramButtonText: {
     color: COLORS.white,
     fontSize: 16,
+    fontWeight: '600',
+  },
+  instagramPublishButton: {
+    backgroundColor: '#E4405F',
+  },
+  instagramIconContainer: {
+    marginRight: 8,
+  },
+  instagramConnectButton: {
+    backgroundColor: '#405DE6',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  instagramConnectText: {
+    color: COLORS.white,
+    fontSize: 14,
     fontWeight: '600',
   },
 });

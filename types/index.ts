@@ -69,13 +69,17 @@ export interface GeminiResponse {
 
 // Social Types
 export interface SocialAccount {
-  id: string;
-  userId: string;
+  id: number;
+  userId: number;
   platform: 'instagram' | 'facebook' | 'twitter';
   accountId: string;
-  accountName: string;
-  isConnected: boolean;
-  connectedAt?: string;
+  accountName?: string;
+  accessToken?: string;
+  status?: string;
+  pageId?: string;
+  igUserId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PublishRequest {

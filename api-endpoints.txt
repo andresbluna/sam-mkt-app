@@ -1,0 +1,258 @@
+========================================================
+  API-MKT — REFERENCIA DE ENDPOINTS PARA FRONTEND
+  Base URL: http://localhost:3000
+========================================================
+
+CORS habilitado para todos los orígenes (*).
+No hay prefijo global de ruta (/api, etc.).
+
+--------------------------------------------------------
+ 1. AUTH
+--------------------------------------------------------
+
+POST /auth/register
+  Descripción : Crear nueva cuenta de usuario
+  Body (JSON) :
+    {
+      "uuid": "string",       <- UUID generado en el cliente (ej: crypto.randomUUID())
+      "email": "string",
+      "password": "string",
+      "name": "string",
+      "plan": "free"          <- opcional, default: "free"
+    }
+  Respuesta   : objeto User creado
+
+POST /auth/login
+  Descripción : Iniciar sesión
+  Body (JSON) :
+    {
+      "email": "string",
+      "password": "string"
+    }
+  Respuesta   : objeto User (con id, email, name, plan, etc.)
+  HTTP Status : 200 OK
+
+--------------------------------------------------------
+ 2. USUARIOS
+--------------------------------------------------------
+
+POST /users
+  Descripción : Crear usuario directamente (sin auth)
+  Body (JSON) :
+    {
+      "email": "string",
+      "password": "string",
+      "name": "string",
+      "plan": "free"          <- opcional
+    }
+  Respuesta   : objeto User creado
+
+GET /users/:id
+  Descripción : Obtener usuario por ID numérico
+  Params      : id (number)
+  Respuesta   : objeto User
+
+GET /users/uuid/:uuid
+  Descripción : Obtener usuario por UUID
+  Params      : uuid (string)
+  Respuesta   : objeto User
+
+PATCH /users/:id
+  Descripción : Actualizar datos del usuario
+  Params      : id (number)
+  Body (JSON) :
+    {
+      "name": "string",   <- opcional
+      "plan": "string"    <- opcional
+    }
+  Respuesta   : objeto User actualizado
+
+GET /users/:id/logs
+  Descripción : Obtener historial de acciones del usuario
+  Params      : id (number)
+  Respuesta   : array de logs
+
+GET /users/:id/stats
+  Descripción : Obtener estadísticas del usuario
+  Params      : id (number)
+  Respuesta   : objeto con estadísticas
+
+--------------------------------------------------------
+ 3. CUENTAS SOCIALES
+--------------------------------------------------------
+
+POST /social
+  Descripción : Conectar una cuenta de red social
+  Body (JSON) :
+    {
+      "userId": number,
+      "platform": "instagram" | "facebook" | ...,
+      "accessToken": "string",
+      ...                       <- otros campos que requiera
+    }
+  Respuesta   : objeto SocialAccount creado
+
+GET /social/user/:userId
+  Descripción : Obtener todas las cuentas sociales del usuario
+  Params      : userId (number)
+  Respuesta   : array de SocialAccount
+
+GET /social/:id
+  Descripción : Obtener una cuenta social específica
+  Params      : id (number)
+  Respuesta   : objeto SocialAccount
+
+PATCH /social/:id
+  Descripción : Actualizar token o estado de cuenta social
+  Params      : id (number)
+  Body (JSON) :
+    {
+      "accessToken": "string",   <- opcional
+      "status": "string"         <- opcional
+    }
+  Respuesta   : objeto SocialAccount actualizado
+
+DELETE /social/:id
+  Descripción : Desactivar / eliminar cuenta social
+  Params      : id (number)
+  Respuesta   : resultado de la operación
+
+--------------------------------------------------------
+ 4. INSTAGRAM — AUTENTICACIÓN OAuth (Meta)
+--------------------------------------------------------
+
+FLUJO COMPLETO:
+  1. Redirigir al usuario a GET /instagram/auth/login?userId={id}
+  2. El usuario autoriza en Facebook/Meta
+  3. Meta redirige a GET /instagram/auth/callback?code=...&state={userId}
+     (este paso lo maneja el backend automáticamente)
+  4. La conexión queda guardada en DB
+
+GET /instagram/auth/login?userId={id}
+  Descripción : Inicia el flujo OAuth con Meta (redirige al usuario a Facebook)
+  Query params:
+    userId  : number  <- ID numérico del usuario en tu sistema
+  Respuesta   : 302 Redirect a Facebook OAuth
+  Uso frontend:
+    window.location.href = `http://localhost:3000/instagram/auth/login?userId=${userId}`;
+
+GET /instagram/auth/callback?code={code}&state={userId}
+  Descripción : Callback automático de Meta — NO llamar manualmente
+                El backend intercambia el code por tokens y guarda la conexión
+  Respuesta   :
+    {
+      "success": true,
+      "message": "Cuenta de Instagram conectada correctamente",
+      "pageId": "string",
+      "igUserId": "string"
+    }
+
+--------------------------------------------------------
+ 5. INSTAGRAM — PUBLICACIÓN
+  ⚠ Requiere: req.user.id seteado (guard de autenticación)
+     Pasar el userId en la sesión/JWT según implementación del guard
+--------------------------------------------------------
+
+POST /instagram/publish
+  Descripción : Publica una imagen en Instagram
+  Body (JSON) :
+    {
+      "imageUrl": "string",   <- URL pública accesible por Meta (HTTPS obligatorio)
+      "caption": "string"     <- máx 2200 caracteres
+    }
+  Respuesta   :
+    {
+      "success": true,
+      "mediaId": "string"
+    }
+
+  Ejemplo de flujo completo con imagen de Gemini:
+    1. POST /gemini/generate-image  -> obtener base64 de imagen
+    2. Subir imagen a storage (S3, Supabase, Cloudinary, etc.) -> obtener URL pública
+    3. POST /instagram/publish con esa URL + caption
+
+GET /instagram/publish/status/:mediaId
+  Descripción : Consultar estado/datos de un post publicado
+  Params      : mediaId (string)
+  Respuesta   :
+    {
+      "id": "string",
+      "caption": "string",
+      "media_type": "IMAGE",
+      "media_url": "string",
+      "timestamp": "string",
+      "like_count": number,
+      "comments_count": number
+    }
+
+DELETE /instagram/publish/:mediaId
+  Descripción : Eliminar un post de Instagram
+  Params      : mediaId (string)
+  Respuesta   :
+    {
+      "success": true
+    }
+
+--------------------------------------------------------
+ 6. GENERACIÓN DE CONTENIDO CON IA (Gemini)
+--------------------------------------------------------
+
+POST /gemini/generate-image
+  Descripción : Genera una imagen con Gemini AI
+  Body (JSON) :
+    {
+      "prompt": "string"   <- descripción de la imagen a generar
+    }
+  Respuesta   :
+    {
+      "image": "string",   <- imagen en Base64
+      "format": "png"
+    }
+
+  ⚠ IMPORTANTE para publicar en Instagram:
+    La imagen base64 no puede usarse directamente como imageUrl.
+    Debes:
+    1. Convertir base64 -> archivo/blob
+    2. Subirlo a un storage con URL pública HTTPS
+       (Supabase Storage, AWS S3, Cloudinary, Firebase Storage, etc.)
+    3. Usar esa URL en POST /instagram/publish
+
+--------------------------------------------------------
+ 7. EJEMPLO DE FLUJO COMPLETO (Frontend)
+--------------------------------------------------------
+
+// Paso 1: Generar imagen con IA
+const { image } = await fetch('/gemini/generate-image', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ prompt: 'Un café aromático al amanecer' })
+}).then(r => r.json());
+
+// Paso 2: Subir imagen a storage y obtener URL pública
+// (depende de tu proveedor: Supabase, S3, Cloudinary, etc.)
+const publicImageUrl = await uploadBase64ToStorage(image);
+
+// Paso 3: Publicar en Instagram
+const result = await fetch('/instagram/publish', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    imageUrl: publicImageUrl,
+    caption: '☕ El mejor café del día. #cafe #morning'
+  })
+}).then(r => r.json());
+
+console.log(result.mediaId); // ID del post publicado
+
+--------------------------------------------------------
+ NOTAS GENERALES
+--------------------------------------------------------
+
+- Puerto por defecto : 3000 (configurable con env PORT)
+- CORS              : Abierto para todos los orígenes
+- Autenticación     : Los endpoints de /instagram/publish
+                      requieren guard activo (req.user.id)
+- userId en entity  : tipo number (entero, no UUID)
+- Imágenes para IG  : deben ser URLs HTTPS públicas
+- Límite caption    : 2200 caracteres
+
