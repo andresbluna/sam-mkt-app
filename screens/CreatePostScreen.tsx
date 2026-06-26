@@ -13,14 +13,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { usePosts } from '@/contexts/PostsContext';
+import { useAuth } from '@/contexts/AuthContext'; // 👈 asumo que tienes este contexto
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Linking from 'expo-linking'; // 👈 necesario para abrir URL
 import CustomButton from '@/components/ui/CustomButton';
-import CustomInput from '@/components/ui/CustomInput';
 import ErrorMessage from '@/components/ui/ErrorMessage';
 import SuccessMessage from '@/components/ui/SuccessMessage';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { geminiService } from '@/services/gemini.service';
+import { instagramService } from '@/services/instagram.service'; // 👈 nuevo servicio
 import { validatePrompt } from '@/utils/validation';
 
 const COLORS = {
@@ -36,6 +37,7 @@ const COLORS = {
 
 export default function CreatePostScreen() {
   const { createPost, isLoading: isCreatingPost } = usePosts();
+  const { user } = useAuth(); // 👈 obtener usuario autenticado
   const router = useRouter();
 
   // Estados para la imagen
@@ -52,6 +54,21 @@ export default function CreatePostScreen() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // 👇 Función para conectar Instagram
+  const handleConnectInstagram = async () => {
+    try {
+      if (!user?.id) {
+        setError('Usuario no autenticado. Inicia sesión primero.');
+        return;
+      }
+      const loginUrl = await instagramService.getLoginUrl(user.id);
+      await Linking.openURL(loginUrl);
+    } catch (err) {
+      console.error('Error al conectar Instagram:', err);
+      setError('No se pudo iniciar la conexión con Instagram. Intenta de nuevo.');
+    }
+  };
+
   // Genera contenido + imagen desde el backend
   const handleGenerateContent = async () => {
     if (!validatePrompt(prompt)) {
@@ -62,20 +79,17 @@ export default function CreatePostScreen() {
     try {
       setIsGenerating(true);
       setError(null);
-      setImage(null); // resetear imagen anterior
+      setImage(null);
 
       const result = await geminiService.generateContent(prompt);
 
-      // === NUEVO: capturar imagen ===
       if (result.image) {
         setImage(result.image);
         setImageFormat(result.format || 'png');
       } else {
-        // Si el backend no devuelve imagen, podemos mostrar un placeholder o error
         setError('No se generó ninguna imagen. Intenta con otro prompt.');
       }
 
-      // Capturar texto y hashtags (pueden venir o no)
       setCaption(result.caption || result.content || '');
       if (result.hashtags) {
         setHashtags(result.hashtags);
@@ -117,7 +131,6 @@ export default function CreatePostScreen() {
       await createPost({
         content: caption,
         title: prompt.substring(0, 50),
-        // Si tu backend espera la imagen, puedes incluirla aquí
         image: image ? `data:image/${imageFormat};base64,${image}` : undefined,
       });
 
@@ -133,7 +146,6 @@ export default function CreatePostScreen() {
     }
   };
 
-  // Función para construir la URI válida para React Native
   const getImageUri = () => {
     if (!image) return null;
     return `data:image/${imageFormat};base64,${image}`;
@@ -247,6 +259,15 @@ export default function CreatePostScreen() {
               <View style={{ width: 24 }} />
             </View>
 
+            {/* 👇 NUEVO BOTÓN CONECTAR INSTAGRAM */}
+            <TouchableOpacity
+                style={styles.instagramButton}
+                onPress={handleConnectInstagram}
+                activeOpacity={0.8}>
+              <Ionicons name="logo-instagram" size={24} color={COLORS.white} />
+              <Text style={styles.instagramButtonText}>Conectar Instagram</Text>
+            </TouchableOpacity>
+
             {error && (
                 <ErrorMessage
                     message={error}
@@ -258,7 +279,7 @@ export default function CreatePostScreen() {
                 <SuccessMessage message={success} />
             )}
 
-            {/* === NUEVO: Vista previa de la imagen === */}
+            {/* Vista previa de la imagen */}
             <Text style={styles.label}>Imagen generada</Text>
             <View style={styles.imageContainer}>
               {image ? (
@@ -453,7 +474,6 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: '500',
   },
-  // --- Estilos para la imagen ---
   imageContainer: {
     backgroundColor: COLORS.white,
     borderRadius: 12,
@@ -479,7 +499,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 14,
   },
-  // --- Hashtags ---
   hashtagInput: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -538,5 +557,22 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.border,
     flexDirection: 'row',
     gap: 12,
+  },
+  // 👇 Estilo para el botón de Instagram
+  instagramButton: {
+    backgroundColor: '#E4405F', // color oficial de Instagram
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    gap: 8,
+  },
+  instagramButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

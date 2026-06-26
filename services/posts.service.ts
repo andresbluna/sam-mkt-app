@@ -77,6 +77,21 @@ class PostService {
       throw error;
     }
   }
+
+  async updatePost(postId: number, data: UpdatePostRequest): Promise<Post> {
+    const response = await apiClient.getInstance().patch(`/posts/${postId}`, data);
+    return response.data;
+  }
+
+  // 🔥 NUEVO: método para actualizar solo el campo de Instagram
+  async updateInstagramStatus(postId: number, mediaId: string, published: boolean): Promise<Post> {
+    const response = await apiClient.getInstance().patch(`/posts/${postId}`, {
+      instagramMediaId: mediaId,
+      instagramPublished: published,
+    });
+    return response.data;
+  }
+
 }
 
 export const postService = new PostService();

@@ -35,6 +35,8 @@ export interface Post {
   image_url?: string;
   platform: string;
   status: string;
+  instagramPublished?: boolean;
+  instagramMediaId?: string;
   instagram_media_id?: string;
   created_at: string;
   updated_at: string;
