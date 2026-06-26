@@ -55,6 +55,24 @@ class ApiClient {
   clearAuthToken(): void {
     delete this.api.defaults.headers.common['Authorization'];
   }
+  async getInstagramLoginUrl(userId: number): Promise<string> {
+    return `${API_BASE_URL}/instagram/auth/login?userId=${userId}`;
+  }
+
+  async publishToInstagram(imageUrl: string, caption: string): Promise<any> {
+    const response = await this.api.post('/instagram/publish', { imageUrl, caption });
+    return response.data;
+  }
+
+  async getInstagramPostStatus(mediaId: string): Promise<any> {
+    const response = await this.api.get(`/instagram/publish/status/${mediaId}`);
+    return response.data;
+  }
+
+  async deleteInstagramPost(mediaId: string): Promise<any> {
+    const response = await this.api.delete(`/instagram/publish/${mediaId}`);
+    return response.data;
+  }
 }
 
 export const apiClient = new ApiClient();
