@@ -7,6 +7,12 @@ class AuthService {
     try {
       const response = await apiClient.getInstance().post<AuthResponse>('/auth/login', credentials);
       
+      console.log('=== AuthService: Login Response ===');
+      console.log('response.data:', response.data);
+      console.log('response.data.user:', response.data.user);
+      console.log('response.data.user?.id:', response.data.user?.id);
+      console.log('====================================');
+      
       await this.saveAuthData(response.data);
       
       return response.data;

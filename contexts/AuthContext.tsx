@@ -63,6 +63,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(null);
       
       const response = await authService.login(credentials);
+      
+      console.log('=== AuthContext: Login Response ===');
+      console.log('response:', response);
+      console.log('response.user:', response.user);
+      console.log('response.user.id:', response.user?.id);
+      console.log('===================================');
+      
       setUser(response.user);
     } catch (err: any) {
       const errorMessage = err?.response?.data?.message || 'Error during login';
